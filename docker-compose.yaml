@@ -1,0 +1,32 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: dev-user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: dev_db
+    ports:
+      - 5432:5432
+    expose:
+      - "5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data:cached
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: dev_db
+      DB_USER: dev-user
+      DB_PASSWORD: password
+      COIN_GECKO_API_KEY: ${COIN_GECKO_API_KEY}
+    depends_on:
+      - postgres
+    ports:
+      - 8000:8000
+volumes:
+  db-data:

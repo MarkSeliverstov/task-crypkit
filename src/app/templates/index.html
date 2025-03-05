@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Dashboard</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; }
+        h1 { color: #333; }
+        table { width: 80%; margin: 20px auto; border-collapse: collapse; }
+        th, td { padding: 10px; border: 1px solid #ddd; }
+        th { background-color: #f4f4f4; }
+        button { padding: 10px; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Live Crypto Dashboard</h1>
+
+    <h3>Create or Update Coin</h3>
+    <form id="createForm" onsubmit="createCoin(event)">
+        <input type="text" id="createCoinId" placeholder="Enter Coin ID" required />
+        <button type="submit">Create or Update Coin</button>
+    </form>
+
+    <h3>Get Coin Info</h3>
+    <form id="getForm" onsubmit="getCoin(event)">
+        <input type="text" id="getCoinId" placeholder="Enter Coin ID" required />
+        <button type="submit">Get Coin Info</button>
+    </form>
+
+    <h3>Delete Coin</h3>
+    <form id="deleteForm" onsubmit="deleteCoin(event)">
+        <input type="text" id="deleteCoinId" placeholder="Enter Coin ID" required />
+        <button type="submit">Delete Coin</button>
+    </form>
+
+    <h3>Coins</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Coin</th>
+                <th>Symbol</th>
+                <th>Price</th>
+                <th>Market Cap</th>
+                <th>24h Change</th>
+                <th>Last Updated (UTC)</th>
+            </tr>
+        </thead>
+        <tbody id="coinTable">
+        </tbody>
+    </table>
+
+    <script>
+        var ws = new WebSocket("ws://localhost:8000/api/v1/ws/dashboard");
+
+        ws.onmessage = function(event) {
+            try {
+                console.log(event.data)
+                var dashboardData = JSON.parse(event.data);
+                if (!dashboardData.coins) return; 
+
+                var table = document.getElementById("coinTable");
+                table.innerHTML = "";
+
+                dashboardData.coins.forEach(coin => {
+                    var row = document.createElement("tr");
+
+                    row.innerHTML = `
+                        <td>${coin.id}</td>
+                        <td>${coin.name}</td>
+                        <td>${coin.symbol}</td>
+                        <td>${coin.info?.price || "N/A"}</td>
+                        <td>${coin.info?.market_cap || "N/A"}</td>
+                        <td>${coin.info?.price_change_24h || "N/A"}</td>
+                        <td>${coin.info?.last_updated_at || "N/A"}</td>
+                    `;
+
+                    table.appendChild(row);
+                });
+            } catch (error) {
+                console.error("Error parsing data:", error);
+            }
+        };
+
+        async function createCoin(event) {
+            event.preventDefault();
+            const coinId = document.getElementById("createCoinId").value;
+
+            const response = await fetch(`/api/v1/coins/${coinId}`, {
+                method: 'POST',
+            });
+
+            if (!response.ok) {
+                if (response.status == 409) {
+                    alert("Coin already exists");
+                }
+                else {
+                    alert("Coin not found.");
+                }
+            }
+        }
+
+        async function getCoin(event) {
+            event.preventDefault();
+            const coinId = document.getElementById("getCoinId").value;
+
+            const response = await fetch(`/api/v1/coins/${coinId}`);
+
+            if (response.ok) {
+                const coin = await response.json();
+                alert(`Coin Info:\nName: ${coin.name}\nSymbol: ${coin.symbol}\n`);
+            } else {
+                alert("Coin not found.");
+            }
+        }
+
+        async function deleteCoin(event) {
+            event.preventDefault();
+            const coinId = document.getElementById("deleteCoinId").value;
+
+            const response = await fetch(`/api/v1/coins/${coinId}`, {
+                method: 'DELETE',
+            });
+
+            if (!response.ok) {
+                alert("Coin not found.");
+            }
+        }
+    </script>
+</body>
+</html>

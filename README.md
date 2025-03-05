@@ -1,31 +1,38 @@
-# Python template repository
+# Crypto dashboard
 
-Using:
+Simple python application for quering coingecko api and (live) show some information about coins.
 
-- `poetry` for dependency management and packaging.
-- `pytest` for testing.
-- `ruff` for formatting.
-- `mypy` for static type checking.
-- `pre-commit` for code quality.
+## Usage
 
-**It includes a basic structure for a Poetry project.**
+First, you must set the following environment variables in a `.env` file:
 
 ```bash
-.
-├── src/
-│   └── __init__.py
-│   └── __main__.py
-│   └── py.typed
-├── tests/
-│   └── test.py
-├── pyproject.toml
-├── poetry.lock
-├── README.md
-├── LICENSE
-├── .gitignore
-├── .pre-commit-config.yaml
-├── .dockerignore
+# Required:
+export COIN_GECKO_API_KEY=""
+
+# Only for local development:
+export DB_USER=""
+export DB_PASSWORD=""
+export DB_HOST=""
+export DB_NAME=""
 ```
+
+After setting the environment variables, you can simply run the application using:
+
+```bash
+docker-compose up
+```
+
+Or for local development:
+
+```bash
+poetry run app
+```
+
+You can access these endpoints:
+
+- Api documentation on `http://127.0.0.1:8000/api/v1/docs`
+- Dashboard on `http://127.0.0.1:8000/dashboard`
 
 ## Development
 
